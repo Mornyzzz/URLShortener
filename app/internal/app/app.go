@@ -13,33 +13,32 @@ type App struct {
 	GRPCServer *grpcapp.App
 }
 
-func New(
-	log *slog.Logger,
-	cfg config.Config,
-) *App {
+func New(log *slog.Logger, cfg config.Config) *App {
 	var storage url_shortener.URLStorage
 	var err error
 
-	log.Info("start ap")
+	log.Info("start app")
 	switch cfg.StorageType {
+
 	case "postgres":
 		log.Info("init postgres...")
 		storage, err = p.New(cfg.Postgres)
 		if err != nil {
 			panic("no postgres storage")
 		}
+
 	case "redis":
 		log.Info("init redis...")
 		storage, err = r.New(cfg.Redis)
-		log.Info("", cfg)
 		if err != nil {
 			panic("no redis storage")
 		}
+
 	default:
 		panic("no/unknown storage")
 	}
 
-	log.Info("successfully init")
+	log.Info("storage successfully init")
 
 	urlShortener := url_shortener.New(log, storage)
 

@@ -11,6 +11,8 @@ services:
     environment:
       - CONFIG_FILE=config/config.yaml
       - STORAGE_TYPE=${STORAGE_TYPE:-postgres}
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres_db}
+      - REDIS_HOST=${REDIS_HOST:-redis_db}
     depends_on:
       - postgres
       - redis
@@ -29,15 +31,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-
   redis:
     image: redis:latest
-    container_name: redis_d
+    container_name: redis_db
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
 
 volumes:
   postgres_data:

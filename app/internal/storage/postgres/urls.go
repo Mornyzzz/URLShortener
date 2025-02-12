@@ -7,8 +7,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 	_ "grpc-service-ref/internal/domain/models"
+	"grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
-	e "grpc-service-ref/pkg"
 )
 
 const (
@@ -28,19 +28,19 @@ func (s *Storage) SaveURL(ctx context.Context, url string, alias string) error {
 		if errors.As(err, &pgErr) && pgErr.Code == uniqueViolation {
 			switch pgErr.ConstraintName {
 			case "unique_url":
-				return e.Err(op, storage.ErrURLExists)
+				return sl.ErrStr(op, storage.ErrURLExists)
 			case "unique_alias":
-				return e.Err(op, storage.ErrAliasExists)
+				return sl.ErrStr(op, storage.ErrAliasExists)
 			default:
-				return e.Err(op, err)
+				return sl.ErrStr(op, err)
 			}
 		}
 
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return e.Err(op, storage.ErrTimeout)
+			return sl.ErrStr(op, storage.ErrTimeout)
 		default:
-			return e.Err(op, err)
+			return sl.ErrStr(op, err)
 		}
 	}
 
@@ -58,17 +58,17 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 	).Scan(&resURL).Error
 
 	if resURL == "" {
-		return "", e.Err(op, storage.ErrURLNotFound)
+		return "", sl.ErrStr(op, storage.ErrURLNotFound)
 	}
 
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
-			return "", e.Err(op, storage.ErrURLNotFound)
+			return "", sl.ErrStr(op, storage.ErrURLNotFound)
 		case errors.Is(err, context.DeadlineExceeded):
-			return "", e.Err(op, storage.ErrTimeout)
+			return "", sl.ErrStr(op, storage.ErrTimeout)
 		default:
-			return "", e.Err(op, err)
+			return "", sl.ErrStr(op, err)
 		}
 	}
 
@@ -86,15 +86,15 @@ func (s *Storage) GetAlias(ctx context.Context, url string) (string, error) {
 	).Scan(&resAlias).Error
 
 	if resAlias == "" {
-		return "", e.Err(op, storage.ErrAliasNotFound)
+		return "", sl.ErrStr(op, storage.ErrAliasNotFound)
 	}
 
 	if err != nil {
 		switch {
 		case errors.Is(err, context.DeadlineExceeded):
-			return "", e.Err(op, storage.ErrTimeout)
+			return "", sl.ErrStr(op, storage.ErrTimeout)
 		default:
-			return "", e.Err(op, err)
+			return "", sl.ErrStr(op, err)
 		}
 	}
 

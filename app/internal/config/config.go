@@ -48,27 +48,31 @@ func MustLoadPath(configPath string) *Config {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		panic("config file does not exist: " + configPath)
 	}
-
 	var cfg Config
-
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("cannot read config: " + err.Error())
 	}
+
 	storage := os.Getenv("STORAGE_TYPE")
 	if storage != "" {
 		cfg.StorageType = storage
+	}
+	postgresHost := os.Getenv("POSTGRES_HOST")
+	if postgresHost != "" {
+		cfg.Postgres.Host = postgresHost
+	}
+	redisHost := os.Getenv("REDIS_HOST")
+	if redisHost != "" {
+		cfg.Redis.Host = redisHost
 	}
 
 	return &cfg
 }
 
 func fetchConfigPath() string {
-
 	cfgPath := os.Getenv("CONFIG_FILE")
-
 	if cfgPath == "" {
 		cfgPath = "config/config.yaml"
 	}
-
 	return cfgPath
 }

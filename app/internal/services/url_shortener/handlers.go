@@ -5,7 +5,6 @@ import (
 	"errors"
 	"grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
-	e "grpc-service-ref/pkg"
 	"log/slog"
 	"math/rand"
 )
@@ -32,22 +31,20 @@ const (
 		"0123456789" +
 		"_"
 	shortURLLen = 10
-	//allowedChars = "ab"
-	//shortURLLen  = 2
 )
 
-func (u *UrlShortener) Shorten(ctx context.Context, url string) (string, error) {
+func (u *UrlShortener) Post(ctx context.Context, url string) (string, error) {
 	const op = "services.url_shortener.Shorten"
 
-	log := u.log.With(
+	log := u.Log.With(
 		slog.String("op", op),
 		slog.String("url", url),
 	)
 
 	log.Info("checking alias in db...")
-	alias, err := u.urlStorage.GetAlias(ctx, url)
+	alias, err := u.UrlStorage.GetAlias(ctx, url)
 	if err == nil {
-		log.Info("find alias:", alias, err)
+		log.Info("find alias:", slog.String("alias", alias))
 		return alias, nil
 	}
 
@@ -62,42 +59,42 @@ func (u *UrlShortener) Shorten(ctx context.Context, url string) (string, error) 
 		}
 		alias = string(result)
 
-		log.Info("generated alias: ", alias)
+		log.Info("generated alias: ", slog.String("alias", alias))
 
-		err = u.urlStorage.SaveURL(ctx, url, alias)
+		err = u.UrlStorage.SaveURL(ctx, url, alias)
 
 		if errors.Is(err, storage.ErrAliasExists) {
 			log.Warn("alias exists", sl.Err(err))
 		} else if err != nil {
 			log.Error("failed to save alias", sl.Err(err))
-			return "", e.Err(op, err)
+			return "", sl.ErrStr(op, err)
 		} else {
-			u.log.Info("successfully save alias", alias)
+			u.Log.Info("successfully save alias", slog.String("alias", alias))
 			return alias, nil
 		}
 	}
 }
 
-func (u *UrlShortener) GetOriginalUrl(ctx context.Context, alias string) (string, error) {
+func (u *UrlShortener) Get(ctx context.Context, alias string) (string, error) {
 	const op = "services.url_shortener.GetOriginalUrl"
 
-	log := u.log.With(
+	log := u.Log.With(
 		slog.String("op", op),
 		slog.String("alias", alias),
 	)
 
 	log.Info("attempting to get url...")
 
-	url, err := u.urlStorage.GetURL(ctx, alias)
+	url, err := u.UrlStorage.GetURL(ctx, alias)
 	if errors.Is(err, storage.ErrURLNotFound) {
 		log.Error("url not found", sl.Err(err))
-		return "", e.Err(op, err)
+		return "", sl.ErrStr(op, err)
 	} else if errors.Is(err, storage.ErrTimeout) {
 		log.Error("timeout", sl.Err(err))
-		return "", e.Err(op, err)
+		return "", sl.ErrStr(op, err)
 	} else if err != nil {
 		log.Error("error getting url", sl.Err(err))
-		return "", e.Err(op, err)
+		return "", sl.ErrStr(op, err)
 	}
 	log.Info("successfully got url")
 	return url, nil

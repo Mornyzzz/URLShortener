@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"grpc-service-ref/internal/config"
+	sl "grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
-	e "grpc-service-ref/pkg"
 )
 
 type Storage struct {
@@ -23,7 +23,7 @@ func NewRedisConfig(cfg config.RedisConfig) (*RedisConfig, error) {
 	const op = "storage.redis.NewRedisConfig"
 
 	if cfg.Host == "" || cfg.Port == "" {
-		return nil, e.Err(op, storage.ErrNotSetDBParameter)
+		return nil, sl.ErrStr(op, storage.ErrNotSetDBParameter)
 	}
 
 	return &RedisConfig{
@@ -39,7 +39,7 @@ func New(cfg config.RedisConfig) (*Storage, error) {
 
 	redisCfg, err := NewRedisConfig(cfg)
 	if err != nil {
-		return nil, e.Err(op, err)
+		return nil, sl.ErrStr(op, err)
 	}
 
 	client := redis.NewClient(&redis.Options{
@@ -50,7 +50,7 @@ func New(cfg config.RedisConfig) (*Storage, error) {
 
 	err = client.Ping(context.Background()).Err()
 	if err != nil {
-		return nil, e.Err(op, err)
+		return nil, sl.ErrStr(op, err)
 	}
 
 	return &Storage{
@@ -62,7 +62,7 @@ func (s *Storage) Ping(ctx context.Context) error {
 	const op = "storage.redis.Ping"
 	err := s.r.Ping(ctx).Err()
 	if err != nil {
-		return e.Err(op, err)
+		return sl.ErrStr(op, err)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func (s *Storage) Stop() error {
 	const op = "storage.redis.Close"
 	err := s.r.Close()
 	if err != nil {
-		return e.Err(op, err)
+		return sl.ErrStr(op, err)
 	}
 	return nil
 }

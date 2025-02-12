@@ -8,7 +8,7 @@ RUN go mod download
 
 
 COPY app ./
-RUN go build -o ./bin/app cmd/urlshortener/main.go
+RUN go build -o ./bin/app cmd/url_shortener/main.go
 
 
 FROM alpine:latest
@@ -18,5 +18,4 @@ COPY config/config.yaml /config/config.yaml
 
 EXPOSE 8080
 
-CMD ["/app"]
-#CMD ["./urlshort", "--storage", "${STORAGE_TYPE}"]
+CMD ["./app", "${STORAGE_TYPE}"]

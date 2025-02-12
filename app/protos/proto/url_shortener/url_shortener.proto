@@ -5,22 +5,22 @@ package url_shortener;
 option go_package = "moiseev.url_shortener.v1;url_shortenerv1";
 
 service UrlShortener {
-  rpc Shorten(ShortenRequest) returns (ShortenResponse);
-  rpc GetOriginal(GetOriginalRequest) returns (GetOriginalResponse);
+  rpc Post(PostRequest) returns (PostResponse);
+  rpc Get(GetRequest) returns (GetResponse);
 }
 
-message ShortenRequest {
-  string original_url = 1;
+message PostRequest {
+  string url = 1;
 }
 
-message ShortenResponse {
-  string short_url = 1;
+message PostResponse {
+  string alias = 1;
 }
 
-message GetOriginalRequest {
-  string short_url = 1;
+message GetRequest {
+  string alias = 1;
 }
 
-message GetOriginalResponse {
-  string original_url = 1;
+message GetResponse {
+  string url = 1;
 }

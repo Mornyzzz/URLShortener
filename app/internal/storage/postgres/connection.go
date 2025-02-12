@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 	"grpc-service-ref/internal/config"
 	"grpc-service-ref/internal/domain/models"
+	"grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
-	e "grpc-service-ref/pkg"
 )
 
 type Storage struct {
@@ -24,7 +24,7 @@ func NewDsn(dbCfg config.PostgresConfig) (string, error) {
 	port := dbCfg.Port
 
 	if host == "" || user == "" || password == "" || name == "" {
-		return "", e.Err(op, storage.ErrNotSetDBParameter)
+		return "", sl.ErrStr(op, storage.ErrNotSetDBParameter)
 	}
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, name)
@@ -38,17 +38,17 @@ func New(dbCfg config.PostgresConfig) (*Storage, error) {
 	dsn, err := NewDsn(dbCfg)
 
 	if err != nil {
-		return nil, e.Err(op, err)
+		return nil, sl.ErrStr(op, err)
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, e.Err(op, err)
+		return nil, sl.ErrStr(op, err)
 	}
 
 	err = db.AutoMigrate(&models.URL{})
 	if err != nil {
-		return nil, e.Err(op, err)
+		return nil, sl.ErrStr(op, err)
 	}
 
 	return &Storage{db: db}, nil
@@ -59,12 +59,12 @@ func (s *Storage) Stop() error {
 
 	db, err := s.db.DB()
 	if err != nil {
-		return e.Err(op, err)
+		return sl.ErrStr(op, err)
 	}
 
 	err = db.Close()
 	if err != nil {
-		return e.Err(op, err)
+		return sl.ErrStr(op, err)
 	}
 
 	return nil

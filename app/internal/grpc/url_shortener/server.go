@@ -14,11 +14,11 @@ import (
 )
 
 type UrlShortener interface {
-	Shorten(
+	Post(
 		ctx context.Context,
 		url string,
 	) (string, error)
-	GetOriginalUrl(
+	Get(
 		ctx context.Context,
 		alias string,
 	) (string, error)
@@ -33,37 +33,37 @@ func Register(gRPCServer *grpc.Server, urlShortener UrlShortener) {
 	urlShortenerv1.RegisterUrlShortenerServer(gRPCServer, &serverAPI{urlShortener: urlShortener})
 }
 
-func (s *serverAPI) Shorten(
+func (s *serverAPI) Post(
 	ctx context.Context,
-	in *urlShortenerv1.ShortenRequest,
-) (*urlShortenerv1.ShortenResponse, error) {
-	if in.OriginalUrl == "" {
+	in *urlShortenerv1.PostRequest,
+) (*urlShortenerv1.PostResponse, error) {
+	if in.Url == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing original url")
 	}
-	if ok := govalidator.IsURL(in.OriginalUrl); !ok {
+	if ok := govalidator.IsURL(in.Url); !ok {
 		return nil, status.Error(codes.InvalidArgument, "not valid url")
 	}
 
-	short, err := s.urlShortener.Shorten(ctx, in.OriginalUrl)
+	alias, err := s.urlShortener.Post(ctx, in.Url)
 	if errors.Is(err, storage.ErrTimeout) {
 		return nil, status.Error(codes.DeadlineExceeded, "failed to shorten url")
 	} else if err != nil {
 		return nil, status.Error(codes.Aborted, "failed to shorten url")
 	}
 
-	return &urlShortenerv1.ShortenResponse{ShortUrl: short}, nil
+	return &urlShortenerv1.PostResponse{Alias: alias}, nil
 }
 
-func (s *serverAPI) GetOriginal(
+func (s *serverAPI) Get(
 	ctx context.Context,
-	in *urlShortenerv1.GetOriginalRequest,
-) (*urlShortenerv1.GetOriginalResponse, error) {
+	in *urlShortenerv1.GetRequest,
+) (*urlShortenerv1.GetResponse, error) {
 
-	if in.ShortUrl == "" {
+	if in.Alias == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing alias")
 	}
 
-	url, err := s.urlShortener.GetOriginalUrl(ctx, in.ShortUrl)
+	url, err := s.urlShortener.Get(ctx, in.Alias)
 	if errors.Is(err, storage.ErrTimeout) {
 		return nil, status.Error(codes.DeadlineExceeded, "failed to get url")
 	} else if errors.Is(err, storage.ErrURLNotFound) {
@@ -72,5 +72,5 @@ func (s *serverAPI) GetOriginal(
 		return nil, status.Error(codes.Canceled, "failed to get url")
 	}
 
-	return &urlShortenerv1.GetOriginalResponse{OriginalUrl: url}, nil
+	return &urlShortenerv1.GetResponse{Url: url}, nil
 }

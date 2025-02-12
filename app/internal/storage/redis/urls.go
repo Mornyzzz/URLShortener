@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/go-redis/redis/v8"
+	"grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
-	e "grpc-service-ref/pkg"
 )
 
 const (
@@ -49,7 +49,7 @@ func (s *Storage) SaveURL(ctx context.Context, url string, alias string) error {
 	}, aliasKey, urlKey)
 
 	if err != nil {
-		return e.Err(op, err)
+		return sl.ErrStr(op, err)
 	}
 
 	return nil
@@ -63,7 +63,7 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 	case errors.Is(err, redis.Nil):
 		return "", storage.ErrURLNotFound
 	case err != nil:
-		return "", e.Err(op, err)
+		return "", sl.ErrStr(op, err)
 	}
 
 	return val, nil
@@ -77,7 +77,7 @@ func (s *Storage) GetAlias(ctx context.Context, url string) (string, error) {
 	case errors.Is(err, redis.Nil):
 		return "", storage.ErrAliasNotFound
 	case err != nil:
-		return "", e.Err(op, err)
+		return "", sl.ErrStr(op, err)
 	}
 
 	return val, nil

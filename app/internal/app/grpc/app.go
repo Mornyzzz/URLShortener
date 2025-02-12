@@ -19,7 +19,6 @@ type App struct {
 	port       int
 }
 
-// New creates new gRPC server app.
 func New(
 	log *slog.Logger,
 	urlShortenerService urlshortenergrpc.UrlShortener,
@@ -27,10 +26,8 @@ func New(
 ) *App {
 	var loggingOpts = []logging.Option{
 		logging.WithLogOnEvents(
-			//logging.StartCall, logging.FinishCall,
 			logging.PayloadReceived, logging.PayloadSent,
 		),
-		// Add any other option (check functions starting with logging.With).
 	}
 	recoveryOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p interface{}) (err error) {
@@ -76,14 +73,13 @@ func (a *App) Run() error {
 
 	a.log.Info("GRPC server started", slog.String("addr", l.Addr().String()))
 
-	if err := a.gRPCServer.Serve(l); err != nil {
+	if err = a.gRPCServer.Serve(l); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil
 }
 
-// Stop stops gRPC server.
 func (a *App) Stop() {
 	const op = "grpcapp.Stop"
 
