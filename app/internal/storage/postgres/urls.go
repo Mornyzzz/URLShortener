@@ -17,8 +17,8 @@ const (
 
 func (s *Storage) SaveURL(ctx context.Context, url string, alias string) error {
 	const op = "storage.postgres.SaveURL"
-	err := s.db.WithContext(ctx).Raw(
-		"INSERT INTO urls(url, alias) VALUES(?, ?)",
+	err := s.db.WithContext(ctx).Exec(
+		"INSERT INTO urls(url, alias) VALUES(?, ?) RETURNING id",
 		url,
 		alias,
 	).Error
