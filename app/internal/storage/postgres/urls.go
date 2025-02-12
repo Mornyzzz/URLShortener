@@ -1,4 +1,4 @@
-package postgresql
+package postgres
 
 import (
 	"context"
@@ -16,8 +16,7 @@ const (
 )
 
 func (s *Storage) SaveURL(ctx context.Context, url string, alias string) error {
-	const op = "storage.postgresql.SaveURL"
-
+	const op = "storage.postgres.SaveURL"
 	err := s.db.WithContext(ctx).Raw(
 		"INSERT INTO urls(url, alias) VALUES(?, ?)",
 		url,
@@ -49,7 +48,7 @@ func (s *Storage) SaveURL(ctx context.Context, url string, alias string) error {
 }
 
 func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
-	const op = "storage.sqlite.GetURL"
+	const op = "storage.postgres.GetURL"
 
 	var resURL string
 
@@ -57,6 +56,10 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 		"SELECT url FROM urls WHERE alias= ?",
 		alias,
 	).Scan(&resURL).Error
+
+	if resURL == "" {
+		return "", e.Err(op, storage.ErrURLNotFound)
+	}
 
 	if err != nil {
 		switch {
@@ -73,7 +76,7 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 }
 
 func (s *Storage) GetAlias(ctx context.Context, url string) (string, error) {
-	const op = "storage.sqlite.GetAlias"
+	const op = "storage.postgres.GetAlias"
 
 	var resAlias string
 

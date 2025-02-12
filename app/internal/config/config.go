@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"os"
 	"time"
 
@@ -25,13 +24,12 @@ type PostgresConfig struct {
 	Port     int    `yaml:"port" env-default:"5432"`
 	User     string `yaml:"user" env-default:"admin"`
 	Password string `yaml:"password" env-default:"admin"`
-	DBName   string `yaml:"dbname" env-default:"local"`
-	SSLMode  string `yaml:"disable" env-default:"disable"`
+	DBName   string `yaml:"dbname" env-default:"url_shortener_db"`
 }
 
 type RedisConfig struct {
 	Host     string `yaml:"host" env-default:"localhost"`
-	Port     int    `yaml:"port" env-default:"6379"`
+	Port     string `yaml:"port" env-default:"6379"`
 	Password string `yaml:"password" env-default:""`
 	DB       int    `yaml:"db" env-default:"0"`
 }
@@ -56,22 +54,21 @@ func MustLoadPath(configPath string) *Config {
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("cannot read config: " + err.Error())
 	}
+	storage := os.Getenv("STORAGE_TYPE")
+	if storage != "" {
+		cfg.StorageType = storage
+	}
 
 	return &cfg
 }
 
 func fetchConfigPath() string {
 
-	var res string
-	flag.StringVar(&res, "config", "", "path to config file")
-	flag.Parse()
+	cfgPath := os.Getenv("CONFIG_FILE")
 
-	if res == "" {
-		res = os.Getenv("CONFIG_PATH")
-	}
-	if res == "" {
-		res = "config/local.yaml"
+	if cfgPath == "" {
+		cfgPath = "config/config.yaml"
 	}
 
-	return res
+	return cfgPath
 }

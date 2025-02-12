@@ -20,24 +20,26 @@ func New(
 	var storage url_shortener.URLStorage
 	var err error
 
-	log.Info("start app")
-
+	log.Info("start ap")
 	switch cfg.StorageType {
 	case "postgres":
 		log.Info("init postgres...")
 		storage, err = p.New(cfg.Postgres)
 		if err != nil {
-			panic("noo postgres storage")
+			panic("no postgres storage")
 		}
-		log.Info("successfully init")
 	case "redis":
+		log.Info("init redis...")
 		storage, err = r.New(cfg.Redis)
+		log.Info("", cfg)
 		if err != nil {
-			panic("noo redis storage")
+			panic("no redis storage")
 		}
 	default:
 		panic("no/unknown storage")
 	}
+
+	log.Info("successfully init")
 
 	urlShortener := url_shortener.New(log, storage)
 

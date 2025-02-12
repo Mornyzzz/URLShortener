@@ -3,14 +3,13 @@ package url_shortener
 import (
 	"context"
 	"errors"
-	"golang.org/x/exp/rand"
 	"grpc-service-ref/internal/lib/logger/sl"
 	"grpc-service-ref/internal/storage"
 	e "grpc-service-ref/pkg"
 	"log/slog"
+	"math/rand"
 )
 
-//go:generate go run github.com/vektra/mockery/v2@v2.28.2 --name=URLSaver
 type URLStorage interface {
 	SaveURL(
 		ctx context.Context,
@@ -62,6 +61,7 @@ func (u *UrlShortener) Shorten(ctx context.Context, url string) (string, error) 
 			result[i] = allowedChars[rand.Intn(len(allowedChars))]
 		}
 		alias = string(result)
+
 		log.Info("generated alias: ", alias)
 
 		err = u.urlStorage.SaveURL(ctx, url, alias)

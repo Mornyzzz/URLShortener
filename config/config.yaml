@@ -1,0 +1,20 @@
+env: "local"
+
+storage_type: "postgres"
+
+grpc:
+  port:     8080
+  timeout:  5s
+
+postgres:
+  host:     postgres_db
+  port:     5432
+  user:     admin
+  password: admin
+  dbname:   url_shortener_db
+
+redis:
+  host:     redis_d
+  port:     6379
+  password:
+  db:       0

@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"grpc-service-ref/internal/config"
 	"grpc-service-ref/internal/storage"
@@ -15,7 +14,7 @@ type Storage struct {
 
 type RedisConfig struct {
 	Host     string
-	Port     int
+	Port     string
 	Password string
 	DB       int
 }
@@ -23,7 +22,7 @@ type RedisConfig struct {
 func NewRedisConfig(cfg config.RedisConfig) (*RedisConfig, error) {
 	const op = "storage.redis.NewRedisConfig"
 
-	if cfg.Host == "" || cfg.Port == 0 {
+	if cfg.Host == "" || cfg.Port == "" {
 		return nil, e.Err(op, storage.ErrNotSetDBParameter)
 	}
 
@@ -44,10 +43,15 @@ func New(cfg config.RedisConfig) (*Storage, error) {
 	}
 
 	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", redisCfg.Host, redisCfg.Port),
+		Addr:     redisCfg.Host + ":" + redisCfg.Port,
 		Password: redisCfg.Password,
 		DB:       redisCfg.DB,
 	})
+
+	err = client.Ping(context.Background()).Err()
+	if err != nil {
+		return nil, e.Err(op, err)
+	}
 
 	return &Storage{
 		r: client,
